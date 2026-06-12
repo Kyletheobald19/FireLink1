@@ -1,85 +1,97 @@
-const STATUS_UUID = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
-const NOTIFY_UUID = '6e400003-b5a3-f393-e0a9-e50e24dcca9e';
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-let device = null;
+const firebaseConfig = {
+  apiKey: "AIzaSyDIWF_4uHJ888IYJbAuhlgO9-BrQofxVTE",
+  authDomain: "firelink-beb61.firebaseapp.com",
+  projectId: "firelink-beb61",
+  storageBucket: "firelink-beb61.firebasestorage.app",
+  messagingSenderId: "395613452691",
+  appId: "1:395613452691:web:af1620da9edbbc39ce5066"
+};
 
-async function connectBLE() {
-  try {
-    document.getElementById('connectBtn').textContent = 'Connecting...';
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-    device = await navigator.bluetooth.requestDevice({
-      filters: [{ name: 'PTContact' }],
-      optionalServices: [STATUS_UUID]
+let responderName = localStorage.getItem('responderName') || '';
+
+window.onload = function() {
+  if (responderName) {
+    document.getElementById('responderName').textContent = responderName;
+    document.getElementById('nameInput').value = responderName;
+  }
+  listenForContacts();
+  requestNotificationPermission();
+};
+
+window.saveName = function() {
+  const input = document.getElementById('nameInput').value.trim();
+  if (!input) return;
+  responderName = input;
+  localStorage.setItem('responderName', responderName);
+  document.getElementById('responderName').textContent = responderName;
+  alert('Name saved: ' + responderName);
+};
+
+window.manualContact = async function() {
+  if (!responderName) {
+    alert('Please enter your name first');
+    return;
+  }
+
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString();
+  const dateStr = now.toLocaleDateString();
+
+  await addDoc(collection(db, 'contacts'), {
+    responder: responderName,
+    time: timeStr,
+    date: dateStr,
+    timestamp: now.getTime()
+  });
+
+  document.body.style.background = '#3a0000';
+  document.getElementById('status').textContent = '🚨 PT CONTACT';
+  document.getElementById('timestamp').textContent = responderName + ' — ' + dateStr + ' at ' + timeStr;
+};
+
+window.clearContact = function() {
+  document.body.style.background = '#1a1a2e';
+  document.getElementById('status').textContent = 'Awaiting call...';
+  document.getElementById('timestamp').textContent = '';
+};
+
+function listenForContacts() {
+  const q = query(collection(db, 'contacts'), orderBy('timestamp', 'desc'), limit(10));
+  onSnapshot(q, (snapshot) => {
+    const entries = document.getElementById('logEntries');
+    entries.innerHTML = '';
+    snapshot.forEach((doc) => {
+      const d = doc.data();
+      const div = document.createElement('div');
+      div.className = 'log-entry';
+      div.innerHTML = `
+        <div class="log-name">${d.responder}</div>
+        <div class="log-time">${d.date} at ${d.time}</div>
+      `;
+      entries.appendChild(div);
     });
 
-    const server = await device.gatt.connect();
-    const service = await server.getPrimaryService(STATUS_UUID);
-    const characteristic = await service.getCharacteristic(NOTIFY_UUID);
+    if (!snapshot.empty) {
+      const latest = snapshot.docs[0].data();
+      sendNotification('PT CONTACT', latest.responder + ' made patient contact at ' + latest.time);
+    }
+  });
+}
 
-    await characteristic.startNotifications();
-    characteristic.addEventListener('characteristicvaluechanged', handleButtonPress);
-
-    setConnected();
-    document.getElementById('connectBtn').textContent = 'Connected ✓';
-    addLog('Connected to button');
-
-  } catch (err) {
-    document.getElementById('connectBtn').textContent = 'Connect to Button';
-    addLog('Connection failed: ' + err.message);
+function requestNotificationPermission() {
+  if ('Notification' in window) {
+    Notification.requestPermission();
   }
-}
-
-function handleButtonPress(event) {
-  const value = new TextDecoder().decode(event.target.value);
-
-  if (value === 'CONTACT') {
-    setContact();
-    const time = new Date().toLocaleTimeString();
-    document.getElementById('timestamp').textContent = 'PT Contact at ' + time;
-    addLog('PT CONTACT — ' + time);
-    sendNotification('PT CONTACT', 'Patient contact made at ' + time);
-  }
-
-  if (value === 'CLEAR') {
-    setConnected();
-    document.getElementById('timestamp').textContent = '';
-    addLog('Cleared');
-  }
-}
-
-function setConnected() {
-  document.getElementById('status').innerHTML = '<span class="dot connected" id="dot"></span> Connected — Awaiting...';
-  document.body.style.background = '#1a1a2e';
-}
-
-function setContact() {
-  document.getElementById('status').innerHTML = '<span class="dot contact" id="dot"></span> PT CONTACT';
-  document.body.style.background = '#3a0000';
-}
-
-function addLog(message) {
-  const log = document.getElementById('log');
-  const entry = document.createElement('div');
-  entry.className = 'log-entry';
-  entry.textContent = message;
-  log.prepend(entry);
 }
 
 function sendNotification(title, body) {
   if ('Notification' in window && Notification.permission === 'granted') {
     new Notification(title, { body: body });
-  } else if ('Notification' in window) {
-    Notification.requestPermission().then(permission => {
-      if (permission === 'granted') {
-        new Notification(title, { body: body });
-      }
-    });
   }
-  function manualContact() {
-  setContact();
-  const time = new Date().toLocaleTimeString();
-  document.getElementById('timestamp').textContent = 'PT Contact at ' + time;
-  addLog('PT CONTACT — ' + time);
-  sendNotification('PT CONTACT', 'Patient contact made at ' + time);
-}
 }
