@@ -16,7 +16,7 @@ const db = getFirestore(app);
 const EMAILJS_SERVICE_ID = 'service_fhqlylf';
 const EMAILJS_TEMPLATE_ID = 'template_qp29vus';
 const EMAILJS_PUBLIC_KEY = '1UBuG2d3HvhxS7EwP';
-const VERIZON_SMS_EMAIL = 'YOURNUMBER@vtext.com';
+const VERIZON_SMS_EMAIL = '973-862-3100@vtext.com';
 
 let responderName = localStorage.getItem('responderName') || '';
 
