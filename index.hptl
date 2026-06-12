@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PT Contact</title>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    body {
+      font-family: -apple-system, sans-serif;
+      background: #1a1a2e;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    #status {
+      font-size: 28px;
+      font-weight: bold;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    #timestamp {
+      font-size: 16px;
+      color: #aaa;
+      margin-bottom: 40px;
+    }
+    #connectBtn {
+      background: #0f3460;
+      color: white;
+      border: none;
+      padding: 16px 32px;
+      font-size: 18px;
+      border-radius: 12px;
+      cursor: pointer;
+      margin-bottom: 16px;
+      width: 240px;
+    }
+    #connectBtn:active {
+      background: #16213e;
+    }
+    .dot {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #888;
+      display: inline-block;
+      margin-right: 8px;
+    }
+    .dot.connected { background: #00ff88; }
+    .dot.contact { background: #ff4444; }
+    #log {
+      margin-top: 30px;
+      width: 90%;
+      max-width: 400px;
+      font-size: 13px;
+      color: #aaa;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .log-entry {
+      padding: 6px 0;
+      border-bottom: 1px solid #333;
+    }
+  </style>
+</head>
+<body>
+  <div id="status">
+    <span class="dot" id="dot"></span>
+    Awaiting connection...
+  </div>
+  <div id="timestamp"></div>
+  <button id="connectBtn" onclick="connectBLE()">Connect to Button</button>
+  <div id="log"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
