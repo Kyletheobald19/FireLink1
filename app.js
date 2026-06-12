@@ -75,4 +75,11 @@ function sendNotification(title, body) {
       }
     });
   }
+  function manualContact() {
+  setContact();
+  const time = new Date().toLocaleTimeString();
+  document.getElementById('timestamp').textContent = 'PT Contact at ' + time;
+  addLog('PT CONTACT — ' + time);
+  sendNotification('PT CONTACT', 'Patient contact made at ' + time);
+}
 }

@@ -6,6 +6,21 @@
   <title>PT Contact</title>
   <link rel="manifest" href="manifest.json">
   <style>
+  #manualBtn {
+  background: #c0392b;
+  color: white;
+  border: none;
+  padding: 24px 32px;
+  font-size: 24px;
+  font-weight: bold;
+  border-radius: 16px;
+  cursor: pointer;
+  width: 240px;
+  margin-bottom: 16px;
+}
+#manualBtn:active {
+  background: #922b21;
+}
     body {
       font-family: -apple-system, sans-serif;
       background: #1a1a2e;
@@ -73,7 +88,8 @@
     Awaiting connection...
   </div>
   <div id="timestamp"></div>
-  <button id="connectBtn" onclick="connectBLE()">Connect to Button</button>
+<button id="connectBtn" onclick="connectBLE()">Connect to Hardware Button</button>
+<button id="manualBtn" onclick="manualContact()">🚨 PT CONTACT</button>
   <div id="log"></div>
 
   <script src="app.js"></script>
