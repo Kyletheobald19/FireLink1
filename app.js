@@ -13,6 +13,11 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+const EMAILJS_SERVICE_ID = 'service_fhqlylf';
+const EMAILJS_TEMPLATE_ID = 'template_qp29vus';
+const EMAILJS_PUBLIC_KEY = '1UBuG2d3HvhxS7EwP';
+const VERIZON_SMS_EMAIL = 'YOURNUMBER@vtext.com';
+
 let responderName = localStorage.getItem('responderName') || '';
 
 window.onload = function() {
@@ -22,6 +27,11 @@ window.onload = function() {
   }
   listenForContacts();
   requestNotificationPermission();
+
+  const script = document.createElement('script');
+  script.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js';
+  script.onload = () => emailjs.init(EMAILJS_PUBLIC_KEY);
+  document.head.appendChild(script);
 };
 
 window.saveName = function() {
@@ -53,6 +63,8 @@ window.manualContact = async function() {
   document.body.style.background = '#3a0000';
   document.getElementById('status').textContent = '🚨 PT CONTACT';
   document.getElementById('timestamp').textContent = responderName + ' — ' + dateStr + ' at ' + timeStr;
+
+  sendSMS(responderName, dateStr, timeStr);
 };
 
 window.clearContact = function() {
@@ -60,6 +72,19 @@ window.clearContact = function() {
   document.getElementById('status').textContent = 'Awaiting call...';
   document.getElementById('timestamp').textContent = '';
 };
+
+function sendSMS(responder, date, time) {
+  emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+    responder: responder,
+    date: date,
+    time: time,
+    to_email: VERIZON_SMS_EMAIL
+  }).then(() => {
+    console.log('SMS sent');
+  }).catch((err) => {
+    console.error('SMS failed', err);
+  });
+}
 
 function listenForContacts() {
   const q = query(collection(db, 'contacts'), orderBy('timestamp', 'desc'), limit(10));
@@ -94,4 +119,5 @@ function sendNotification(title, body) {
   if ('Notification' in window && Notification.permission === 'granted') {
     new Notification(title, { body: body });
   }
+}
 }
